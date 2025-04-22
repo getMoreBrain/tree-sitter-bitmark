@@ -1,0 +1,199 @@
+// grammar.js  –  Tree‑sitter grammar for Bitmark
+// ------------------------------------------------
+// Generated 2025‑04‑22 from the original Peggy grammar
+// (c) 2023‑2025 Get More Brain AG
+// ------------------------------------------------
+
+module.exports = grammar({
+  name: 'bitmark',
+
+  /*
+   * ───────────────────────────────────────────────────────────
+   *  Lexical basics
+   * ───────────────────────────────────────────────────────────
+   */
+
+  extras: $ => [
+    /[ \t\f]+/            // keep new‑lines explicit – they matter
+  ],
+
+  // conflicts: $ => [
+  //   // avoids the “bit_header • blank_line …” conflict that crops up
+  //   [$.bit_header, $.divider] ,
+  // ],
+
+  /*
+   * ───────────────────────────────────────────────────────────
+   *  Top‑level
+   * ───────────────────────────────────────────────────────────
+   */
+
+  rules: {
+    source_file: $ => repeat(choice($.bit, $.empty_line)),
+
+    // Plain text that is *not* inside a bit
+    empty_line: $ => seq(/[^\n\r]+/, $.newline),
+
+    newline: _ => /\r?\n/,
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Bits
+     * ───────────────────────────────────────────────────────
+     */
+
+    bit: $ => seq(
+      field('header', $.bit_header),
+      field(
+        'body',
+        repeat(choice(
+          $.divider,
+          // $.card_set_v2,
+          // $.card_set_v1,
+          $.tag_chain,
+          $.text_fragment,
+          $.newline        // preserve blank lines inside a bit
+        ))
+      )
+    ),
+
+    /*
+     * Bit header
+     *   [.article]
+     *   [.interview:bitmark++&image]
+     */
+    bit_header: $ => seq(
+      '[.',
+      field('bit_type', $.identifier),
+      optional(seq(':', field('text_format', $.text_format))),
+      optional(seq('&', field('resource', $.resource_type))),
+      ']'
+    ),
+
+    identifier: _ => /[a-zA-Z][a-zA-Z0-9_-]*/,
+    text_format: _ => choice('bitmark--', 'bitmark++'),
+    resource_type: _ => choice('image', 'video'),
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Free text inside a bit
+     * ───────────────────────────────────────────────────────
+     */
+
+    text_fragment: _ => token.immediate(/[^\n\r\[]+/),
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Dividers
+     * ───────────────────────────────────────────────────────
+     */
+
+    divider: $ => choice($.plain_text_divider, $.footer_divider),
+
+    plain_text_divider: $ => seq(
+      $.newline,
+      choice('$$$$', seq('====', /[ \t]+/, 'text', /[ \t]+/, '====')),
+      $.newline
+    ),
+
+    footer_divider: $ => seq(
+      $.newline,
+      choice('~~~~', seq('====', /[ \t]+/, 'footer', /[ \t]+/, '====')),
+      $.newline
+    ),
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Modern Card‑set  (==== …)
+     * ───────────────────────────────────────────────────────
+     */
+
+    // card_set_v2: $ => seq(
+    //   $.card_set_start_v2,
+    //   repeat($.card_line_or_divider_v2),
+    //   $.card_set_end_v2
+    // ),
+
+    // card_set_start_v2: $ => seq($.newline, '====', $.newline),
+    // card_set_end_v2:   $ => seq(optional($.footer_divider_text), $.newline),
+    // footer_divider_text: _ => choice('~~~~', seq('====', /[ \t]+/, 'footer', /[ \t]+/, '====')),
+
+    // card_line_or_divider_v2: $ => choice(
+    //   seq('====', $.newline),
+    //   seq('--',   $.newline),
+    //   seq('++',   $.newline),
+    //   $.card_line_v2
+    // ),
+    // card_line_v2: $ => seq(/[^\n\r]+/, $.newline),
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Legacy Card‑set  (=== …)
+     * ───────────────────────────────────────────────────────
+     */
+
+    // card_set_v1: $ => seq(
+    //   $.card_set_start_v1,
+    //   repeat($.card_line_or_divider_v1),
+    //   $.card_set_end_v1
+    // ),
+    // card_set_start_v1: $ => seq($.newline, '===', $.newline),
+    // card_set_end_v1:   $ => seq('===', $.newline),
+
+    // card_line_or_divider_v1: $ => choice(
+    //   seq('===', $.newline),
+    //   seq('==',  $.newline),
+    //   seq('--',  $.newline),
+    //   $.card_line_v1
+    // ),
+    // card_line_v1: $ => seq(/[^\n\r]+/, $.newline),
+
+    /*
+     * ───────────────────────────────────────────────────────
+     *  Tag‑chain   [@id:123][%item][?hint]…
+     * ───────────────────────────────────────────────────────
+     */
+
+    // Right‑associative ⇒ keep swallowing `bit_tag`s
+    tag_chain: $ => prec.right(repeat1($.bit_tag)),
+
+    bit_tag: $ => choice(
+      $.id_tag,
+      $.property_tag,
+      $.title_tag,
+      $.anchor_tag,
+      $.reference_tag,
+      $.item_lead_tag,
+      $.instruction_tag,
+      $.hint_tag,
+      $.gap_tag,
+      $.mark_tag,
+      $.sample_solution_tag,
+      $.true_tag,
+      $.false_tag,
+      $.resource_tag
+    ),
+
+    // generic “value”  – permits ^] to escape the terminator
+    tag_value: _ => token.immediate(/(?:\^\]|[^\]])+/),
+
+    /*
+     * Individual tag forms
+     * (boolean tags are represented by the absence of “:value”)
+     */
+    id_tag:            $ => seq('[@id',               optional(seq(':', $.tag_value)), ']'),
+    property_tag:      $ => seq('[@',  $.identifier,  optional(seq(':', $.tag_value)), ']'),
+    title_tag:         $ => seq('[',  repeat1('#'),   $.tag_value, ']'),
+    anchor_tag:        $ => seq('[▼', $.tag_value, ']'),
+    reference_tag:     $ => seq('[►', $.tag_value, ']'),
+    item_lead_tag:     $ => seq('[%', $.tag_value, ']'),
+    instruction_tag:   $ => seq('[!', $.tag_value, ']'),
+    hint_tag:          $ => seq('[?', $.tag_value, ']'),
+    true_tag:          $ => seq('[+', $.tag_value, ']'),
+    false_tag:         $ => seq('[-', $.tag_value, ']'),
+    sample_solution_tag:$ => seq('[$', $.tag_value, ']'),
+    gap_tag:           $ => seq('[_', $.tag_value, ']'),
+    mark_tag:          $ => seq('[=', $.tag_value, ']'),
+    resource_tag:      $ => seq('[&', $.identifier,   optional(seq(':', $.tag_value)), ']'),
+  }
+});

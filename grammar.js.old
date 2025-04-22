@@ -1,0 +1,216 @@
+/**
+ * @file bitmark Bit is used to describe shareable, self-contained, interactive quiz or static content bits
+ * @author Get More Brain <richard.sewell@getmorebrain.com>
+ * @license MIT
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
+module.exports = grammar({
+  name: 'bitmark',
+
+  extras: $ => [/\s/], // handles WS and WNL
+
+
+  rules: {
+    document: $ => seq(
+      repeat($.blank_line), // leading blank lines at start allowed
+      $.bit,
+      repeat(seq(repeat($.blank_line), $.bit)),
+      repeat($.blank_line) // trailing blank lines at EOF allowed
+    ),
+
+    bit: $ => seq(
+      $.bit_header,
+      repeat($.bit_content),
+    ),
+
+    bit_header: $ => seq(
+      '[.',
+      field('bit_type', $.bit_value),
+      optional(seq(':', field('text_format', $.bit_value))),
+      optional(seq('&', field('resource_type', $.bit_value))),
+      ']'
+    ),
+
+    bit_content: $ => choice(
+      // $.divider,
+      // $.card_set_v1,
+      // $.card_set_v2,
+      $.block_tag_chain,
+      $.body
+    ),
+
+    body: $ => seq(
+      repeat1($.weol),
+      repeat1($.body_char)
+    ),
+
+    block_tag_chain: $ => seq(
+      repeat1($.weol),
+      repeat1($.block_tag),
+    ),
+
+    block_tag: $ => choice(
+      $.id_tag,
+      $.title_tag,
+      $.anchor_tag,
+      $.reference_tag,
+      $.property_tag,
+      $.item_lead_tag,
+      $.instruction_tag,
+      $.hint_tag,
+      // $.gap_tag,
+      // $.mark_tag,
+      $.sample_solution_tag,
+      // $.true_tag,
+      // $.false_tag,
+      $.resource_tag
+    ),
+
+    // Tag variants
+    id_tag: $ => seq('[@id', optional($.key_value_tag_value), optional(']')),
+    title_tag: $ => seq('[', repeat1('#'), optional($.tag_value), optional(']')),
+    anchor_tag: $ => seq('[▼', optional($.tag_value), optional(']')),
+    reference_tag: $ => seq('[►', optional($.tag_value), optional(']')),
+    property_tag: $ => seq('[@', $.key_value_tag_key, optional($.key_value_tag_value), optional(']')),
+    item_lead_tag: $ => seq('[%', optional($.tag_value), optional(']')),
+    instruction_tag: $ => seq('[!', optional($.tag_value), optional(']')),
+    hint_tag: $ => seq('[?', optional($.tag_value), optional(']')),
+    // gap_tag: $ => seq('[_', optional($.tag_value), optional(']')),
+    // mark_tag: $ => seq('[=', optional($.tag_value), optional(']')),
+    sample_solution_tag: $ => seq('[$', optional($.tag_value), optional(']')),
+    // true_tag: $ => seq('[+', optional($.tag_value), optional(']')),
+    // false_tag: $ => seq('[-', optional($.tag_value), optional(']')),
+    resource_tag: $ => seq('[&', $.key_value_tag_key, optional($.key_value_tag_value), optional(']')),
+
+    // // Cards
+    // card_set_v1: $ => seq(
+    //   $.card_set_start_v1,
+    //   repeat($.card_line_or_divider_v1),
+    //   $.card_set_end_v1
+    // ),
+    // card_set_start_v1: $ => seq($.newline, '==='),
+    // card_set_end_v1: $ => seq('===', optional($.blank_line)),
+    // card_line_or_divider_v1: $ => choice('===', '==', '--', $.card_line_v1),
+    // card_line_v1: $ => seq(repeat1($.char), $.newline),
+
+    // card_set_v2: $ => seq(
+    //   $.card_set_start_v2,
+    //   repeat($.card_line_or_divider_v2),
+    //   $.card_set_end_v2
+    // ),
+    // card_set_start_v2: $ => seq($.newline, '===='),
+    // card_set_end_v2: $ => seq($.footer_divider_text, optional($.blank_line)),
+    // card_line_or_divider_v2: $ => choice('====', '--', '++', $.card_line_v2),
+    // card_line_v2: $ => seq(repeat1($.char), $.newline),
+
+    // // Dividers
+    // divider: $ => choice($.footer_divider, $.plain_text_divider),
+    // footer_divider: $ => seq($.newline, $.footer_divider_text, $.newline),
+    // plain_text_divider: $ => seq($.newline, $.plain_text_divider_text, $.newline),
+    // footer_divider_text: $ => choice('~~~~', seq('====', 'footer', '====')),
+    // plain_text_divider_text: $ => choice('$$$$', seq('====', 'text', '====')),
+
+    // Shared rules
+    bit_value: $ => /[^&:\]]+/,
+    tag_value: $ => repeat1(choice('^]', /[^\]]/)),
+    key_value_tag_key: $ => /[^:\]]+/,
+    key_value_tag_value: $ => seq(':', optional($.tag_value)),
+
+    // Single characters
+    body_char: $ => /./,
+    char: $ => /[^\n\r\u2028\u2029]/,
+
+    // Newlines and whitespace
+    blank_line: $ => /[ \t]*[\n\r\u2028\u2029]/,
+    newline: $ => /[\n\r\u2028\u2029]/,
+    weol: $ => $.blank_line,
+
+    // document: $ => repeat($._block),
+
+    // _block: $ => $.bit_block,
+
+    // bit_block: $ => seq(
+    //   $.bit_header,
+    //   repeat(choice($._inline, $.block_tag))
+    // ),
+
+    // bit_header: $ => seq(
+    //   '[.',
+    //   field('bit_type', $.bit_type),
+    //   optional(seq(
+    //     ':',
+    //     field('text_format', $.text_format),
+    //   )),
+    //   optional(seq(
+    //     '&',
+    //     field('resource', $.resource_type),
+    //   )),
+    //   ']'
+    // ),
+
+    // bit_type: $ => choice(
+    //   'article',
+    //   'summary',
+    //   'extractor-ai-chat',
+    //   'note',
+    //   // Add other valid bits here
+    //   // Generic types
+    //   /[a-zA-Z][a-zA-Z0-9_-]*/
+    // ),
+
+    // text_format: $ => choice(
+    //   'bitmark--',
+    //   'bitmark++'
+    // ),
+
+    // resource_type: $ => choice(
+    //   'image',
+    //   'video'
+    // ),
+
+    // block_tag: $ => choice(
+    //   $.instruction_block_tag,
+    //   $.hint_block_tag,
+    // ),
+
+    // _inline: $ => choice(
+    //   $.bold,
+    //   $.italic,
+    //   $.formula_inline,
+    //   $.superscript,
+    //   $.subscript,
+    //   $.gap,
+    //   $.text,
+    // ),
+
+
+    // // Block tags
+
+    // instruction_block_tag: $ =>
+    //   seq('[!', field('instruction', $.bitmark_minus_text), ']'),
+    
+    // hint_block_tag: $ =>
+    //   seq('[?', field('hint', $.bitmark_minus_text), ']'),
+
+    // bitmark_minus_text: $ => repeat1($.text),  // You may refine this further
+
+    // gap: $ =>
+    //   seq('[_', field('gap', $.plain_text), ']'),
+    
+
+    // // Inline formatting
+
+    // bold: $ => seq('**', repeat1($.text), '**'),
+    // italic: $ => seq('__', repeat1($.text), '__'),
+    // formula_inline: $ => seq('==', repeat1($.text), '==|latex|'),
+    // superscript: $ => seq('==', repeat1($.text), '==|superscript|'),
+    // subscript: $ => seq('==', repeat1($.text), '==|subscript|'),
+
+    // plain_text: $ => repeat1($.text),  // Could be stricter if needed
+
+    // text: $ => token(prec(-1, /[^\s*=_|\[\]]+/)),
+  }
+});
