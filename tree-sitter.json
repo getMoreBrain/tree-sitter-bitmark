@@ -1,0 +1,39 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "bitmark",
+      "camelcase": "Bitmark",
+      "title": "Bitmark",
+      "scope": "source.bitmark",
+      "file-types": [
+        "bitmark"
+      ],
+      "injection-regex": "^bitmark$",
+      "class-name": "TreeSitterBitmark"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "bitmark Bit is used to describe shareable, self-contained, interactive quiz or static content bits",
+    "authors": [
+      {
+        "name": "Get More Brain",
+        "email": "richard.sewell@getmorebrain.com"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/getMoreBrain/bitmark-parser-generator-treesitter"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
+}
