@@ -1,15 +1,20 @@
-[.article]
+[.article:bitmark++&video]
 
-This is bold text and this is italic text
+Here is some inline 'style' applied **here is __the__ text** is this bold.
+Here is some __italic__ text ==the text==|test| is that correct **bold**
 
-Other text
 
-[.article]
-[@id:123]
-This is **bold text** and this is __italic text__.
-[@property:123]
+[.article:bitmark++]
+Here is some inline 'style' applied ==here is the text==|bold|italic|subscript|, nice huh?
 
-[.article]
+**bold**
 
-File right [ & here [_gap][@example] there
-And a * from _ good measure!
+
+[.test]
+This is a valid bit too, but actually it should not be.
+
+[@this:property]
+
+[!Instruction]
+
+[%item][%lead][%pageNo][%marginNo][%hello!]

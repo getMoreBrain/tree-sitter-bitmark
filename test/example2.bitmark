@@ -10,3 +10,64 @@ Die Mitarbeitenden sind unser wichtigstes Kapital. Respekt, Menschlichkeit und V
 [_Emmi]
 
 
+[.article]
+
+This is bold text and this is italic text
+
+Other text
+
+[.article:bitmark++]
+[@id:123]
+This is **bold text** and this is __italic text__.
+[@property:123]
+
+[.article]
+
+File right [ & here [_gap][@example] there
+And a * from [ _ good measure!
+
+[.test]
+[#title]
+This is some **bold text**
+This is **bold text** and this is __italic text__.
+
+[#
+
+Test ]
+
+[.article:bitmark++]
+[%hint][%hint][%hint][%hint]
+[%hint]
+
+Here we are testing the inline tag
+
+Here is the text ==alt text of the inline image==|imageInline:https://img.io/img.svg| more text
+Here is the text ==alt text of the inline image==|imageInline:https://img.io/img.svg|@width:400|height:200| more text
+Here is the text ==alt text of the inline image==|imageInline:https://img.io/img.svg|width:400|@height:200|#comment| more text
+
+Here is some inline 'c' code ==int test=0;==|code:c|, nice huh?
+
+Here is some inline 'plain text' code ==int test=0;==|code|, nice huh?
+
+Here is some inline 'colour' applied ==**Bold is ignored**==|color:pink|, nice huh?
+
+Here is some inline 'style' applied ==^^Break^scape^^!==|strike|, nice huh?
+
+Here is some inline 'style' applied ==here is the text==|strike|#With a comment as well|, nice huh?
+
+Here is some inline 'style' applied ==here is the text==|subscript|, nice huh?
+Here is some inline 'style' applied ==here is the text==|superscript|, nice huh?
+Here is some inline 'style' applied ==here is the text==|ins|, nice huh?
+Here is some inline 'style' applied ==here is the text==|del|, nice huh?
+Here is some inline 'style' applied ==here is the text==|underline|, nice huh?
+Here is some inline 'style' applied ==here is the text==|doubleUnderline|, nice huh?
+Here is some inline 'style' applied ==here is the text==|circle|, nice huh?
+Here is some inline 'style' applied ==here is the text==|languageEm|, nice huh?
+Here is some inline 'style' applied ==here is the text==|userUnderline|, nice huh?
+Here is some inline 'style' applied ==here is the text==|userDoubleUnderline|, nice huh?
+Here is some inline 'style' applied ==here is the text==|userStrike|, nice huh?
+Here is some inline 'style' applied ==here is the text==|userCircle|, nice huh?
+Here is some inline 'style' applied ==here is the text==|userHighlight|, nice huh?
+Here is some inline 'style' applied ==here is the text==|notranslate|, nice huh?
+
+Here is some inline 'style' applied ==here is the text==|bold|italic|subscript|, nice huh?
